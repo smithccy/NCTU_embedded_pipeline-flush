@@ -55,10 +55,10 @@ float32_t mul(float *source,float *weights)
     float32_t output = 0.0;
     int i;
     prod = vmovq_n_f32(0.0f);
-    for (i=0; i<SIZE; i+=4) {
+    for (i=0; i<SIZE; i+=16) {
         in1_128 = vld1q_f32(&source[i]);
         in2_128 = vld1q_f32(&weights[i]);
-#ifdef FLUSH
+#ifdef FLUSH 
         prod = vmulq_f32(in1_128, in2_128);
         sum1 = vaddq_f32(prod, vrev64q_f32(prod));
         sum2 = vaddq_f32(sum1, vcombine_f32(vget_high_f32(sum1), vget_low_f32(sum1)));
@@ -68,6 +68,45 @@ float32_t mul(float *source,float *weights)
 #ifdef NON_FLUSH
         prod = vmlaq_f32(prod, in1_128, in2_128);
 #endif
+
+        in1_128 = vld1q_f32(&source[i+4]);
+        in2_128 = vld1q_f32(&weights[i+4]);
+#ifdef FLUSH 
+        prod = vmulq_f32(in1_128, in2_128);
+        sum1 = vaddq_f32(prod, vrev64q_f32(prod));
+        sum2 = vaddq_f32(sum1, vcombine_f32(vget_high_f32(sum1), vget_low_f32(sum1)));
+        vst1q_f32((float32_t *)result, sum2);
+        output += result[0];
+#endif
+#ifdef NON_FLUSH
+        prod = vmlaq_f32(prod, in1_128, in2_128);
+#endif
+
+        in1_128 = vld1q_f32(&source[i+8]);
+        in2_128 = vld1q_f32(&weights[i+8]);
+#ifdef FLUSH 
+        prod = vmulq_f32(in1_128, in2_128);
+        sum1 = vaddq_f32(prod, vrev64q_f32(prod));
+        sum2 = vaddq_f32(sum1, vcombine_f32(vget_high_f32(sum1), vget_low_f32(sum1)));
+        vst1q_f32((float32_t *)result, sum2);
+        output += result[0];
+#endif
+#ifdef NON_FLUSH
+        prod = vmlaq_f32(prod, in1_128, in2_128);
+#endif
+
+        in1_128 = vld1q_f32(&source[i+12]);
+        in2_128 = vld1q_f32(&weights[i+12]);
+#ifdef FLUSH 
+        prod = vmulq_f32(in1_128, in2_128);
+        sum1 = vaddq_f32(prod, vrev64q_f32(prod));
+        sum2 = vaddq_f32(sum1, vcombine_f32(vget_high_f32(sum1), vget_low_f32(sum1)));
+        vst1q_f32((float32_t *)result, sum2);
+        output += result[0];
+#endif
+#ifdef NON_FLUSH
+        prod = vmlaq_f32(prod, in1_128, in2_128);
+#endif     
     }
 #ifdef NON_FLUSH
     sum1 = vaddq_f32(prod, vrev64q_f32(prod));
